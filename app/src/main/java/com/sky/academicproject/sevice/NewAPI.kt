@@ -21,4 +21,12 @@ interface NewAPI {
     @GET("v2/everything?q=bitcoin&pageSize=1&apiKey=47c5d14a75c645988221b3ce3d5a17af")
     fun getDataDirect() :Single<Response>
 
+    @GET(" v2/everything?apiKey=47c5d14a75c645988221b3ce3d5a17af")
+    suspend fun getDataSuspend
+
+                ( @Query("q") word: String,
+                  @Query("pageSize") pageSize: Int
+    ) : Single<Response>
+
+
 }

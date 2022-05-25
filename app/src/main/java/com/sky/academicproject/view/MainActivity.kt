@@ -20,8 +20,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(NewViewModel::class.java)
-        viewModel.getData("bitcoin",5)
-       // viewModel.getDataDirect()
+        //viewModel.getData("bitcoin",5)
+        viewModel.getDataWihtCoroutine("bitcoin",5)
         observeLiveData()
     }
 

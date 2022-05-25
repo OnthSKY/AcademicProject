@@ -23,8 +23,8 @@ class NewAPIService {
         return api.getData(word,pageSize)
     }
 
-    fun getDataDirect() : Single<Response>
+    suspend fun getDataSuspend(word: String,pageSize: Int) : Single<Response>
     {
-        return api.getDataDirect()
+        return api.getDataSuspend(word,pageSize)
     }
 }

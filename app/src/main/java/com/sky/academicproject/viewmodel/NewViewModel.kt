@@ -1,5 +1,6 @@
 package com.sky.academicproject.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.sky.academicproject.model.Response
@@ -8,8 +9,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.launch
 
-class NewViewModel : ViewModel() {
+class NewViewModel(application: Application) : BaseViewModel(application) {
 
     private val api = NewAPIService()
     private val disposable = CompositeDisposable()
@@ -20,22 +22,9 @@ class NewViewModel : ViewModel() {
     {
         getDataFromInternet(word,pageSize)
     }
-    fun getDataDirect()
+    fun getDataWihtCoroutine(word: String, pageSize: Int)
     {
-        disposable.add(
-            api.getDataDirect()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<Response>(){
-                    override fun onSuccess(t: Response) {
-                        response.value = t
-                    }
-
-                    override fun onError(e: Throwable) {
-                        e.printStackTrace()
-                    }
-                })
-        )
+        getDataWithCoroutineV1(word, pageSize)
     }
     private fun getDataFromInternet( word: String,pageSize: Int)
     {
@@ -54,6 +43,26 @@ class NewViewModel : ViewModel() {
                     }
                 })
         )
+    }
+
+    private fun getDataWithCoroutineV1(word:String,pageSize: Int)
+    {
+        launch {
+            disposable.add(
+                api.getData(word,pageSize)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeWith(object : DisposableSingleObserver<Response>(){
+                        override fun onSuccess(t: Response) {
+                            response.value = t
+                        }
+
+                        override fun onError(e: Throwable) {
+                            e.printStackTrace()
+                        }
+                    })
+            )
+        }
     }
 
 
