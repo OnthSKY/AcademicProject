@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AcademicProject</string>
+    <string name="API_KEY">12d92f63e3d178e41879f4267aec5d7e</string>
+    <string name="BASE_URL">http://api.mediastack.com/v1/</string>
+</resources>
