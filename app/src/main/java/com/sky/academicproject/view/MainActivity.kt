@@ -11,29 +11,45 @@ import androidx.lifecycle.get
 import com.sky.academicproject.R
 import com.sky.academicproject.viewmodel.NewViewModel
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
     private lateinit var  viewModel : NewViewModel
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(NewViewModel::class.java)
-        //viewModel.getData("bitcoin",5)
-        viewModel.getDataWihtCoroutine("bitcoin",5)
+
+        println("----------------------------")
+
+
+
+        /*val time = measureTimeMillis {
+            viewModel.async {
+                delay(2000L)
+                println("async başladı")
+                viewModel.getData("bitcoin", 100)
+                println("Async bitti")
+            }
+        }
+        println("MAIN içerisinde Async geçen  ${time}")*/
+
+        viewModel.getDataWithCoroutine("dolar",100)
         observeLiveData()
+        viewModel.getDataWithAsync("dolar", 100)
+        viewModel.getData("dolar", 100)
+
     }
 
     private fun observeLiveData()
     {
-        println("Observe Live Data içerisi")
         viewModel.response.observe(this, Observer{ response->
             response?.let {
-                println("Let içerisi")
                 if(it.status == "ok")
                 {
-                    println("Ok içerisi")
                     textView.text = it.articles!!.size.toString()
                 }
                 else
