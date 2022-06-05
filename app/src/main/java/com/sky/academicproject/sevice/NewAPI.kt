@@ -2,6 +2,7 @@ package com.sky.academicproject.sevice
 
 import com.sky.academicproject.model.Response
 import io.reactivex.Single
+import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -16,7 +17,7 @@ interface NewAPI {
 
                 ( @Query("q") word: String,
                   @Query("pageSize") pageSize: Int
-                 ) : Single<Response>
+                 ) : Call<Response>
 
     @GET("v2/everything?q=bitcoin&pageSize=1&apiKey=47c5d14a75c645988221b3ce3d5a17af")
     fun getDataDirect() :Single<Response>
@@ -28,5 +29,12 @@ interface NewAPI {
                   @Query("pageSize") pageSize: Int
     ) : Single<Response>
 
+
+    @GET(" v2/everything?apiKey=47c5d14a75c645988221b3ce3d5a17af")
+    fun getDatax
+
+                ( @Query("q") word: String,
+                  @Query("pageSize") pageSize: Int
+    ) : Call<Response>
 
 }

@@ -27,26 +27,15 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        /*val time = measureTimeMillis {
-            viewModel.async {
-                delay(2000L)
-                println("async başladı")
-                viewModel.getData("bitcoin", 100)
-                println("Async bitti")
-            }
-        }
-        println("MAIN içerisinde Async geçen  ${time}")*/
-
-        viewModel.getDataWithCoroutine("dolar",100)
+        viewModel.getDataWithLaunchCoroutine("dolar",20)
         observeLiveData()
-        viewModel.getDataWithAsync("dolar", 100)
-        viewModel.getData("dolar", 100)
+
 
     }
 
     private fun observeLiveData()
     {
-        viewModel.response.observe(this, Observer{ response->
+        viewModel.responseA.observe(this, Observer{ response->
             response?.let {
                 if(it.status == "ok")
                 {
