@@ -2,7 +2,6 @@ package com.sky.academicproject.sevice
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.sky.academicproject.model.NewResponse
-import kotlinx.coroutines.Deferred
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -21,31 +20,15 @@ class NewAPIService {
 
     fun getData(word: String,pageSize: Int): Call<NewResponse> {
 
-        return api.getData(word,pageSize)
+        return api.getData(word,pageSize,API_KEY)
     }
-
     suspend fun getDataDirectSuspend() : NewResponse
     {
         return api.getDataDirectWithinSuspendCall()
     }
 
-    suspend fun getDataWithinSuspendCall(word: String, pageSize: Int) : Call<NewResponse>
-    {
-        return api.getDatax(word,pageSize)
-    }
-
-
-    suspend fun getDataDirectWithinSuspend() : retrofit2.Response<NewResponse?>
-    {
-        return api.getDataDirectWithinSuspend()
-    }
-
     suspend fun getDataWithinSuspend(word:String, pageSize: Int) : NewResponse
     {
-        return api.getDataSuspend(word,pageSize)
-    }
-     fun getAsync() : Deferred<retrofit2.Response<NewResponse?>>
-    {
-        return api.getAsync()
+        return api.getDataSuspend(word,pageSize,API_KEY)
     }
 }

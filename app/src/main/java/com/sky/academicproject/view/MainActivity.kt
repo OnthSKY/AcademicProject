@@ -8,14 +8,20 @@ import com.sky.academicproject.R
 import com.sky.academicproject.adapter.RecyclerAdapter
 import com.sky.academicproject.viewmodel.ResponseViewModel
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
 
 
 
     private lateinit var adapter: RecyclerAdapter
     private lateinit var viewModel : ResponseViewModel
+    private val job =  Job()
 
+
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,14 +35,13 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter*/
 
         println("----------------------------")
+
         viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
-        //viewModel.getDataWithinSuspend("dolar", 1)
-        var time = viewModel.getDataWithinSuspendAsync("dolar",50)
+
+        viewModel.getDataWithinSuspend("dolar", 60)
+        //viewModel.getDataWithinThread("dolar", 1)
+        //viewModel.getDataWithinSuspendAsync("bitcoin",1)
         observeLiveData()
-
-        println("--------------\n Main Activity içerisinde süre ${time}")
-
-
     }
 
     private fun observeLiveData()
@@ -55,5 +60,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
 
 }
