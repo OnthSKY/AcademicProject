@@ -2,16 +2,11 @@ package com.sky.academicproject.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.MutableLiveData
-import com.sky.academicproject.model.Response
+import androidx.lifecycle.viewModelScope
+import com.sky.academicproject.model.NewResponse
 import com.sky.academicproject.sevice.NewAPIService
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
@@ -21,56 +16,59 @@ class NewViewModel(application: Application) : BaseViewModel(application) {
     private val api = NewAPIService()
     private val disposable = CompositeDisposable()
 
-    val responseA = MutableLiveData<Response>()
+    val responseNew = MutableLiveData<NewResponse>()
 
 
     fun getData(word: String, pageSize: Int)
     {
          val request = api.getData(word, pageSize)
-                 request.enqueue(object : retrofit2.Callback<Response> {
+                 request.enqueue(object : retrofit2.Callback<NewResponse> {
                      override fun onResponse(
-                         call: Call<Response>,
-                         response: retrofit2.Response<Response>
+                         call: Call<NewResponse>,
+                         response: retrofit2.Response<NewResponse>
                      ) {
                          if (response.isSuccessful) {
                              response.body().let {
-                                 responseA.value = it
+                                 responseNew.value = it
                              }
                          }
                      }
 
-                     override fun onFailure(call: Call<Response>, t: Throwable) {
+                     override fun onFailure(call: Call<NewResponse>, t: Throwable) {
                          t.printStackTrace()
                      }
                  })
     }
 
-    fun getDataWithinThread(word: String,pageSize: Int )
+    fun getDataWithinThread(word: String,pageSize: Int ) : Long
     {
+        var totalTime: Long = 0L
         thread {
             val time = measureTimeMillis {
-               /* val request = api.getData(word, pageSize)
-                request.enqueue(object : retrofit2.Callback<Response> {
+                val request = api.getData(word, pageSize)
+                request.enqueue(object : retrofit2.Callback<NewResponse> {
                     override fun onResponse(
-                        call: Call<Response>,
-                        response: retrofit2.Response<Response>
+                        call: Call<NewResponse>,
+                        response: retrofit2.Response<NewResponse>
                     ) {
                         if (response.isSuccessful) {
                             response.body().let {
-                                responseA.value = it
+                                responseNew.value = it
                             }
                         }
                     }
 
-                    override fun onFailure(call: Call<Response>, t: Throwable) {
+                    override fun onFailure(call: Call<NewResponse>, t: Throwable) {
                         t.printStackTrace()
                     }
-                })*/
-                Thread.sleep(2000L)
+                })
+                //Thread.sleep(2000L)
             }
-            println("Thread kullanımı ile geçen süre ${time} ms")
+            totalTime += time
+            println("Thread ile total time : ${totalTime} ms")
+           // println("Thread kullanımı ile geçen süre ${time} ms")
         }
-
+        return totalTime
     }
 
     fun getDataWithLaunchCoroutine(word: String, pageSize: Int)
@@ -79,23 +77,22 @@ class NewViewModel(application: Application) : BaseViewModel(application) {
     }
     private fun getDataWithinLaunch(word:String, pageSize: Int)
     {
-        launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val job: Job = launch {
-                val request = api.getDatax(word, pageSize)
-                request.enqueue(object : retrofit2.Callback<Response> {
+                val request = api.getDataWithinSuspendCall(word, pageSize)
+                request.enqueue(object : retrofit2.Callback<NewResponse> {
                     override fun onResponse(
-                        call: Call<Response>,
-                        response: retrofit2.Response<Response>
+                        call: Call<NewResponse>,
+                        response: retrofit2.Response<NewResponse>
                     ) {
                         if (response.isSuccessful) {
                             response.body().let {
-                                responseA.value = it
-                                1
+                                responseNew.value = it
                             }
                         }
                     }
 
-                    override fun onFailure(call: Call<Response>, t: Throwable) {
+                    override fun onFailure(call: Call<NewResponse>, t: Throwable) {
                         t.printStackTrace()
                     }
                 })
@@ -104,82 +101,76 @@ class NewViewModel(application: Application) : BaseViewModel(application) {
                 job.join()
 
             }
-            println("Süre is ${time} ms")
+            println("ViewModelScope.Launch Süre is ${time} ms")
 
         }
 
     }
-   /* private fun getDataFromInternet( word: String,pageSize: Int)
+
+    fun getDataResponse()
     {
-        val time = measureTimeMillis {
-            disposable.add(
-                api.getData(word, pageSize)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeWith(object : DisposableSingleObserver<Response>() {
-                        override fun onSuccess(t: Response) {
-                            responseA.value = t
-                           // println("Normal Thread name is ${Thread.currentThread().id}")
+        val job: Job = CoroutineScope(Dispatchers.Main).launch {
+            val response = api.getDataDirectWithinSuspend()
+            val responseJob = withContext(Dispatchers.Default){
+                if(response.isSuccessful){
+                     response.body().let {
+                         responseNew.value = it
+                         println("İşlem Tamam")
+                     }
+                }
+                else{
+                    println("Hata ! ${response.message()}")
+                }
+            }
+        }
+        launch {
+            job.join()
+        }
+    }
+
+    fun getDataAsync(word: String, pageSize: Int)
+    {
+        viewModelScope.launch(Dispatchers.IO) {
+            val time = measureTimeMillis {
+                async {
+                    val request = api.getDataWithinSuspendCall(word, pageSize)
+                    request.enqueue(object : retrofit2.Callback<NewResponse> {
+                        override fun onResponse(
+                            call: Call<NewResponse>,
+                            response: retrofit2.Response<NewResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                response.body().let {
+                                    responseNew.value = it
+                                }
+                            }
                         }
 
-                        override fun onError(e: Throwable) {
-                            e.printStackTrace()
+                        override fun onFailure(call: Call<NewResponse>, t: Throwable) {
+                            t.printStackTrace()
                         }
                     })
-            )
-        }
-        println("Normal çağırma işleminde geçen süre ${time} ms")
-    }
-
-    private fun getDataWithCoroutineV1(word:String,pageSize: Int)
-    {
-        val time = measureTimeMillis {
-
-            launch {
-                delay(1000L)
-              //  println("Coroutine Launch içerisine girdi")
-                disposable.add(
-                    api.getDataSuspend(word, pageSize)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(object : DisposableSingleObserver<Response>() {
-                            override fun onSuccess(t: Response) {
-                                responseA.value = t
-                              //  println("Coroutine Thread name is ${Thread.currentThread().id}")
-                            }
-
-                            override fun onError(e: Throwable) {
-                                e.printStackTrace()
-                            }
-                        })
-                )
+                }.await()
             }
+
+            println("Async time is ${time} ms")
         }
-        println("Coroutine içerisinde Geçen süre ${time} ms")
     }
-    private fun getDataAsync(word: String, pageSize: Int)
+    fun deneme()
     {
-        var time = measureTimeMillis {
-        async {
-                disposable.add(
-                    api.getDataSuspend(word,pageSize)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(object : DisposableSingleObserver<Response>(){
-                            override fun onSuccess(t: Response) {
-                                responseA.value = t
-                               // println("Async Thread name is ${Thread.currentThread().state}")
-                            }
-
-                            override fun onError(e: Throwable) {
-                                e.printStackTrace()
-                            }
-                        })
-                )
+        launch{
+            val  time = measureTimeMillis {
+                val request = api.getAsync().await()
+                if (request.isSuccessful) {
+                    request.body().let {
+                        responseNew.postValue(it)
+                    }
+                } else {
+                    println("Hatalı")
+                }
             }
+            println("Deneme içerisinde  ${time} ms")
         }
-        println("Async içerisinde geçen süre ${time} ms ")
-    }*/
-
-
+    }
 }
+

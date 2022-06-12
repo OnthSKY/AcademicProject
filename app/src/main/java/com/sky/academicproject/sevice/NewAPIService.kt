@@ -1,10 +1,10 @@
 package com.sky.academicproject.sevice
 
-import com.sky.academicproject.model.Response
-import io.reactivex.Single
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import com.sky.academicproject.model.NewResponse
+import kotlinx.coroutines.Deferred
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 class NewAPIService {
@@ -14,23 +14,38 @@ class NewAPIService {
     private val api = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+        .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .build()
         .create(NewAPI::class.java)
 
 
-    fun getData(word: String,pageSize: Int): Call<Response> {
+    fun getData(word: String,pageSize: Int): Call<NewResponse> {
 
         return api.getData(word,pageSize)
     }
 
-    /*suspend fun getDataSuspend(word: String,pageSize: Int) : Single<Response>
+    suspend fun getDataDirectSuspend() : NewResponse
     {
-        return api.getDataSuspend(word,pageSize)
-    }*/
+        return api.getDataDirectWithinSuspendCall()
+    }
 
-    suspend fun getDatax(word: String, pageSize: Int) : Call<Response>
+    suspend fun getDataWithinSuspendCall(word: String, pageSize: Int) : Call<NewResponse>
     {
         return api.getDatax(word,pageSize)
+    }
+
+
+    suspend fun getDataDirectWithinSuspend() : retrofit2.Response<NewResponse?>
+    {
+        return api.getDataDirectWithinSuspend()
+    }
+
+    suspend fun getDataWithinSuspend(word:String, pageSize: Int) : NewResponse
+    {
+        return api.getDataSuspend(word,pageSize)
+    }
+     fun getAsync() : Deferred<retrofit2.Response<NewResponse?>>
+    {
+        return api.getAsync()
     }
 }

@@ -1,45 +1,52 @@
 package com.sky.academicproject.view
 
-import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.get
 import com.sky.academicproject.R
-import com.sky.academicproject.viewmodel.NewViewModel
+import com.sky.academicproject.adapter.RecyclerAdapter
+import com.sky.academicproject.viewmodel.ResponseViewModel
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var  viewModel : NewViewModel
+
+
+
+    private lateinit var adapter: RecyclerAdapter
+    private lateinit var viewModel : ResponseViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = ViewModelProvider(this).get(NewViewModel::class.java)
+
+
+        /*val layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = layoutManager
+        adapter = RecyclerAdapter(com.sky.academicproject.model.NewResponse(
+            null,null, null))
+        recyclerView.adapter = adapter*/
 
         println("----------------------------")
-
-
-
-        viewModel.getDataWithLaunchCoroutine("dolar",20)
+        viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
+        //viewModel.getDataWithinSuspend("dolar", 1)
+        var time = viewModel.getDataWithinSuspendAsync("dolar",50)
         observeLiveData()
+
+        println("--------------\n Main Activity içerisinde süre ${time}")
 
 
     }
 
     private fun observeLiveData()
     {
-        viewModel.responseA.observe(this, Observer{ response->
+        viewModel.responseNew.observe(this, Observer{ response->
             response?.let {
                 if(it.status == "ok")
                 {
                     textView.text = it.articles!!.size.toString()
+                   // adapter.refreshData(it)
                 }
                 else
                 {
@@ -47,6 +54,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-
     }
+
 }
