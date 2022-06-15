@@ -1,8 +1,10 @@
 package com.sky.academicproject.sevice
 
 import com.sky.academicproject.model.NewResponse
+import io.reactivex.Single
 import kotlinx.coroutines.Deferred
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -30,6 +32,18 @@ interface NewAPI {
                   @Query("apiKey") apiKey: String
     ) : NewResponse
 
+    @GET(" v2/everything")
+    suspend fun getDataSuspendNetworkResponse
+                ( @Query("q") word: String,
+                  @Query("pageSize") pageSize: Int,
+                  @Query("apiKey") apiKey: String
+    ) : Response<NewResponse>
 
 
+    @GET(" v2/everything")
+     fun getDataDeferredAsync
+                ( @Query("q") word: String,
+                  @Query("pageSize") pageSize: Int,
+                  @Query("apiKey") apiKey: String
+    ) : Deferred<Response<NewResponse>>
 }

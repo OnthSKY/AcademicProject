@@ -2,6 +2,7 @@ package com.sky.academicproject.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.sky.academicproject.R
@@ -9,6 +10,7 @@ import com.sky.academicproject.adapter.RecyclerAdapter
 import com.sky.academicproject.viewmodel.ResponseViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
+import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
@@ -37,13 +39,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         println("----------------------------")
 
         viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
+        println("Main Activity içerisinde Thread ${Thread.currentThread().id}")
+        viewModel.getDataWithinLaunchLoop("dolar", 100,100)
+        observeLiveData()
 
-        viewModel.getDataWithinSuspend("dolar", 60)
-        //viewModel.getDataWithinThread("dolar", 1)
-        //viewModel.getDataWithinSuspendAsync("bitcoin",1)
+        button.setOnClickListener{
+            it?.let {
+                Toast.makeText(this, "Butona Tıklandı", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private fun getData(word:String, pageSize: Int) = runBlocking(Dispatchers.Main) {
+        viewModel.getDataWithinSuspend(word, pageSize)
         observeLiveData()
     }
-
     private fun observeLiveData()
     {
         viewModel.responseNew.observe(this, Observer{ response->

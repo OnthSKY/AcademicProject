@@ -2,8 +2,12 @@ package com.sky.academicproject.sevice
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.sky.academicproject.model.NewResponse
+import io.reactivex.Single
+import kotlinx.coroutines.Deferred
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 class NewAPIService {
@@ -16,7 +20,7 @@ class NewAPIService {
         .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .build()
         .create(NewAPI::class.java)
-
+    //.addCallAdapterFactory(CoroutineCallAdapterFactory())
 
     fun getData(word: String,pageSize: Int): Call<NewResponse> {
 
@@ -30,5 +34,15 @@ class NewAPIService {
     suspend fun getDataWithinSuspend(word:String, pageSize: Int) : NewResponse
     {
         return api.getDataSuspend(word,pageSize,API_KEY)
+    }
+
+    suspend fun getDataSuspendResponse(word: String, pageSize: Int): Response<NewResponse>
+    {
+        return api.getDataSuspendNetworkResponse(word,pageSize,API_KEY)
+    }
+
+      fun getDataDeferredAsync(word:String, pageSize:Int) : Deferred<Response<NewResponse>>
+    {
+        return api.getDataDeferredAsync(word,pageSize,API_KEY)
     }
 }
