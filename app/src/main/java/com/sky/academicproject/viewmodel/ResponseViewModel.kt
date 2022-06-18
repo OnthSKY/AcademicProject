@@ -1,5 +1,8 @@
 package com.sky.academicproject.viewmodel
 
+import android.content.Context
+import android.view.View
+import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -94,19 +97,18 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
 
         }
     }
-    fun getDataWithinLaunchLoop(word: String, pageSize: Int, loopSize: Int?) = runBlocking()
+    fun getDataWithinLaunchLoop(word: String, pageSize: Int, loopSize: Int?)
     {
-        println("Temel Run Blocking içerisnde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
-        val jobA: Job = viewModelScope.launch(Dispatchers.IO) {
-            println("Launch içerisinde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
-
-
-            loopSize?.let {
-            var i = 0
-                while(i<loopSize) {
-                    val serviceRequest = api.getDataWithinSuspend(word, pageSize)
-                    if (serviceRequest.totalResults != 0) {
-                        println("döngü sırası : ${i}")
+        viewModelScope.launch(Dispatchers.Main) {
+            //println("Temel Run Blocking içerisnde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+            val jobA: Job = viewModelScope.launch(Dispatchers.IO) {
+              // println("Launch içerisinde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+                loopSize?.let {
+                    var i = 0
+                    while(i<loopSize) {
+                        val serviceRequest = api.getDataWithinSuspend(word, pageSize)
+                        if (serviceRequest.totalResults != 0) {
+                      //  println("döngü sırası : ${i}")
                         responseNew.postValue(serviceRequest)
                     } else {
                         println("Data çekerken hata")
@@ -115,11 +117,43 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
                 }
             }
         }
-        measureTimeMillis {
-            jobA.join()
-        }.apply {
-            println("Geçen süre ${this}")
+            measureTimeMillis {
+                jobA.join()
+            }.apply {
+                println("Geçen süre ${this}")
+            }
         }
+
+    }
+
+    fun getDataWithinAsynchLoop(word: String, pageSize: Int, loopSize: Int?)
+    {
+        launch{
+            //println("Temel Run Blocking içerisnde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+             val jobAsync = viewModelScope.async(Dispatchers.IO) {
+              // println("Launch içerisinde isim = ${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+
+                loopSize?.let {
+                   var i = 0
+                   while(i<loopSize) {
+                      val serviceRequest = api.getDataWithinSuspend(word, pageSize)
+                     if (serviceRequest.totalResults != 0) {
+                          //println("döngü sırası : ${i}")
+                          responseNew.postValue(serviceRequest)
+                      } else {
+                          println("Data çekerken hata")
+                       }
+                    i++
+                }
+            }
+        }
+         measureTimeMillis {
+            jobAsync.await()
+        }.apply {
+             println("Geçen Süre ${this}")
+         }
+        }
+
 
     }
     fun getDataWithinSuspendAsync(word: String, pageSize: Int)
@@ -140,8 +174,6 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
                 }.await()
             }
             println("Async içerisinde geçen süre ${time} ms")
-
-
         }
     }
 
@@ -200,6 +232,49 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
             }.apply {
                 println("Geçen Süre ${this} MS")
             }
+        }
+    }
+
+    fun getDataWithinThreadV2(word:String, pageSize: Int, loopSize: Int?)
+    {
+        var end: Long = 0L
+        println("${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+        measureTimeMillis {
+            thread(start = true, isDaemon = true) {
+                val begin = System.currentTimeMillis()
+                println("Thread içerisinde = ${Thread.currentThread().name} ve id = ${ java.lang.Thread.currentThread().id}}")
+                loopSize?.let {
+                    var i = 0
+                    var serviceRequest : Call<NewResponse>? = null
+                    while(i< it){
+                        serviceRequest = api.getData(word,pageSize)
+                        i++
+                    }
+                    serviceRequest?.let {
+                        it.enqueue(object: Callback<NewResponse>{
+                            override fun onResponse(
+                                call: Call<NewResponse>,
+                                response: Response<NewResponse>
+                            ) {
+                                response.body()?.let {
+                                    responseNew.postValue(it)
+                                    end = System.currentTimeMillis()
+                                }
+                            }
+
+                            override fun onFailure(call: Call<NewResponse>, t: Throwable) {
+                                t.printStackTrace()
+                                end = System.currentTimeMillis()
+                            }
+
+                        })
+                    }
+                }
+                end = System.currentTimeMillis()
+                println("Elapsed time in ms: ${end-begin}")
+            }
+        }.apply {
+            println("Geçen Süre =  ${this} ms")
         }
     }
 }

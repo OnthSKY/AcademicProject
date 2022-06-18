@@ -21,14 +21,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private lateinit var viewModel : ResponseViewModel
     private val job =  Job()
 
-
+    var pageSize: Int = 0
+    var loopCount: Int = 0
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
 
         /*val layoutManager = LinearLayoutManager(this)
         recyclerView.layoutManager = layoutManager
@@ -36,11 +37,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             null,null, null))
         recyclerView.adapter = adapter*/
 
-        println("----------------------------")
 
-        viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
-        println("Main Activity içerisinde Thread ${Thread.currentThread().id}")
-        viewModel.getDataWithinLaunchLoop("dolar", 100,100)
+        println("----------------------------")
+        loopCount = 1
+        pageSize = 1
+
+        var i = 0
+        while(i < loopCount)
+        {
+            viewModel.getDataWithinSuspend("dolar",pageSize)
+            i++
+        }
+
         observeLiveData()
 
         button.setOnClickListener{
@@ -49,9 +57,19 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             }
         }
     }
-    private fun getData(word:String, pageSize: Int) = runBlocking(Dispatchers.Main) {
+    private fun getData(word:String, pageSize: Int) = runBlocking(Dispatchers.Main)
+    {
         viewModel.getDataWithinSuspend(word, pageSize)
         observeLiveData()
+    }
+
+    private fun recyclerViewEnjection()
+    {
+        /*val layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = layoutManager
+        adapter = RecyclerAdapter(com.sky.academicproject.model.NewResponse(
+        null,null, null))
+        recyclerView.adapter = adapter*/
     }
     private fun observeLiveData()
     {
@@ -59,7 +77,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             response?.let {
                 if(it.status == "ok")
                 {
-                    textView.text = it.articles!!.size.toString()
+                    textView.text = (pageSize * loopCount).toString()
                    // adapter.refreshData(it)
                 }
                 else
