@@ -158,12 +158,12 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
     }
     fun getDataWithinSuspendAsync(word: String, pageSize: Int)
     {
-        println("Ana thread ismi ${Thread.currentThread().name}")
+        //println("Ana thread ismi ${Thread.currentThread().name}")
         viewModelScope.launch(Dispatchers.Default) {
-            println("İlk Launch Kullanılan Thread = ${Thread.currentThread().name}")
+            //println("İlk Launch Kullanılan Thread = ${Thread.currentThread().name}")
             val time = measureTimeMillis {
                 viewModelScope.async(Dispatchers.IO) {
-                   println("Async içi thread ismi =  ${Thread.currentThread().name}")
+                  // println("Async içi thread ismi =  ${Thread.currentThread().name}")
                     val serviceRequest = api.getDataWithinSuspend(word,pageSize)
                     if(serviceRequest.totalResults != 0){
                         responseNew.postValue(serviceRequest)
@@ -173,7 +173,7 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
 
                 }.await()
             }
-            println("Async içerisinde geçen süre ${time} ms")
+            println("Async geçen süre =  ${time} ms")
         }
     }
 
@@ -237,16 +237,17 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
 
     fun getDataWithinThreadV2(word:String, pageSize: Int, loopSize: Int?)
     {
+        var begin: Long = 0L
         var end: Long = 0L
-        println("${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
+        //println("${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
         measureTimeMillis {
             thread(start = true, isDaemon = true) {
-                val begin = System.currentTimeMillis()
-                println("Thread içerisinde = ${Thread.currentThread().name} ve id = ${ java.lang.Thread.currentThread().id}}")
+                begin = System.currentTimeMillis()
+                //println("Thread içerisinde = ${Thread.currentThread().name} ve id = ${ java.lang.Thread.currentThread().id}}")
                 loopSize?.let {
                     var i = 0
                     var serviceRequest : Call<NewResponse>? = null
-                    while(i< it){
+                    while(i< loopSize){
                         serviceRequest = api.getData(word,pageSize)
                         i++
                     }
@@ -269,12 +270,16 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
 
                         })
                     }
+
                 }
+
                 end = System.currentTimeMillis()
                 println("Elapsed time in ms: ${end-begin}")
             }
         }.apply {
-            println("Geçen Süre =  ${this} ms")
+           // println("Geçen Süre =  ${this} ms")
         }
+
+
     }
 }

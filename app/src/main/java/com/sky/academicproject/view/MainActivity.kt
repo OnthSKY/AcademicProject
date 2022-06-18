@@ -5,12 +5,12 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.sky.academicproject.R
 import com.sky.academicproject.adapter.RecyclerAdapter
 import com.sky.academicproject.viewmodel.ResponseViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
-import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private val job =  Job()
 
     var pageSize: Int = 0
-    var loopCount: Int = 0
+    var loopSize: Int = 0
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
@@ -30,22 +30,26 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
+        loopSize =  1
+        pageSize = 100
 
-        /*val layoutManager = LinearLayoutManager(this)
+       /* val desiredItemCunt = loopSize * pageSize
+        val layoutManager = LinearLayoutManager(this)
         recyclerView.layoutManager = layoutManager
         adapter = RecyclerAdapter(com.sky.academicproject.model.NewResponse(
-            null,null, null))
+            null,null, null), desiredItemCunt)
         recyclerView.adapter = adapter*/
 
 
-        println("----------------------------")
-        loopCount = 1
-        pageSize = 1
+
+
 
         var i = 0
-        while(i < loopCount)
+        println("----------------------------")
+        while(i < 1)
         {
-            viewModel.getDataWithinSuspend("dolar",pageSize)
+            //viewModel.getDataWithinThreadV2("dolar",pageSize,loopSize)
+            viewModel.getDataWithinSuspendAsync("dolar",pageSize)
             i++
         }
 
@@ -59,8 +63,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     }
     private fun getData(word:String, pageSize: Int) = runBlocking(Dispatchers.Main)
     {
-        viewModel.getDataWithinSuspend(word, pageSize)
-        observeLiveData()
+
     }
 
     private fun recyclerViewEnjection()
@@ -77,8 +80,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             response?.let {
                 if(it.status == "ok")
                 {
-                    textView.text = (pageSize * loopCount).toString()
-                   // adapter.refreshData(it)
+                    textView.text = (pageSize * loopSize).toString()
+                    adapter.refreshData(it)
                 }
                 else
                 {

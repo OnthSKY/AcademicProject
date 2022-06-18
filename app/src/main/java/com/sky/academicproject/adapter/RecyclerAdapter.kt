@@ -8,7 +8,7 @@ import com.sky.academicproject.R
 import com.sky.academicproject.model.NewResponse
 import kotlinx.android.synthetic.main.recycler_row.view.*
 
-class RecyclerAdapter(var response: NewResponse) : RecyclerView.Adapter<RecyclerAdapter.ResponseHolder>() {
+class RecyclerAdapter(var response: NewResponse, var desiredItemCount: Int) : RecyclerView.Adapter<RecyclerAdapter.ResponseHolder>() {
     class ResponseHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     }
@@ -30,7 +30,7 @@ class RecyclerAdapter(var response: NewResponse) : RecyclerView.Adapter<Recycler
       response.articles?.let {
           return it.size
       }
-        return 100
+        return desiredItemCount
     }
 
     fun refreshData(newResponse: NewResponse){

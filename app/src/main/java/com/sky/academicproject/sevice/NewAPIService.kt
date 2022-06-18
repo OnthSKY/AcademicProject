@@ -13,10 +13,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 class NewAPIService {
 
     private val BASE_URL = "https://newsapi.org/"
+
     private val API_KEY = "47c5d14a75c645988221b3ce3d5a17af"
     private val API_KEY_V2 = "9d2eef0782bc4a969cfab65164ebd4ef"
     private val API_KEY_V3 = "0a0e65dd8b88459f9ceed1833a224404"
     private val API_KEY_V4 = "883a86607a5a4c638769b5eac2e20609"
+    private val API_KEY_V5 ="8ac18f1607bd437e86742114f110e78e"
+
+
     private val api = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
@@ -36,7 +40,7 @@ class NewAPIService {
 
     suspend fun getDataWithinSuspend(word:String, pageSize: Int) : NewResponse
     {
-        return api.getDataSuspend(word,pageSize,API_KEY_V4)
+        return api.getDataSuspend(word,pageSize,API_KEY)
     }
 
     suspend fun getDataSuspendResponse(word: String, pageSize: Int): Response<NewResponse>
