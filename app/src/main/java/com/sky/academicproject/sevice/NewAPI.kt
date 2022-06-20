@@ -22,8 +22,6 @@ interface NewAPI {
                  ) : Call<NewResponse>
 
 
-    @GET("v2/everything?q=bitcoin&pageSize=50&apiKey=47c5d14a75c645988221b3ce3d5a17af")
-    suspend fun getDataDirectWithinSuspendCall() :NewResponse
 
     @GET(" v2/everything")
     suspend fun getDataSuspend

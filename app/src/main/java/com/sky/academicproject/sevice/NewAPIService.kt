@@ -19,6 +19,7 @@ class NewAPIService {
     private val API_KEY_V3 = "0a0e65dd8b88459f9ceed1833a224404"
     private val API_KEY_V4 = "883a86607a5a4c638769b5eac2e20609"
     private val API_KEY_V5 ="8ac18f1607bd437e86742114f110e78e"
+    private val API_KEY_V6 = "699cf203f921478badb6a95de623816c"
 
 
     private val api = Retrofit.Builder()
@@ -33,14 +34,11 @@ class NewAPIService {
 
         return api.getData(word,pageSize,API_KEY)
     }
-    suspend fun getDataDirectSuspend() : NewResponse
-    {
-        return api.getDataDirectWithinSuspendCall()
-    }
+
 
     suspend fun getDataWithinSuspend(word:String, pageSize: Int) : NewResponse
     {
-        return api.getDataSuspend(word,pageSize,API_KEY)
+        return api.getDataSuspend(word,pageSize,API_KEY_V6)
     }
 
     suspend fun getDataSuspendResponse(word: String, pageSize: Int): Response<NewResponse>

@@ -16,6 +16,7 @@ import retrofit2.Response
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlin.system.measureTimeMillis
+import kotlin.time.measureTimedValue
 
 
 class ResponseViewModel: ViewModel(), CoroutineScope {
@@ -52,25 +53,6 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
             }.apply {
                 println("Geçen Süre ${this} ms")
             }
-        }
-    }
-    fun getDataDirectWithinSuspend()
-    {
-        viewModelScope.launch(Dispatchers.Default){
-            println("Default Dispatchers içerisinde = ${Thread.currentThread().name} ")
-            val responseJob = launch(Dispatchers.IO) {
-                val serviceRequest = api.getDataDirectSuspend()
-               if(serviceRequest.totalResults != 0){
-                   println("IO Dispatchers içerisinde = ${Thread.currentThread().name} ")
-                   responseNew.postValue(serviceRequest)
-               }
-            }
-            val time = measureTimeMillis {
-                responseJob.join()
-            }
-
-            println("Launch ile geçen süre ${time} ms")
-
         }
     }
 
@@ -177,18 +159,6 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
         }
     }
 
-    fun getDataWithinThread(word: String, pageSize:Int)
-    {
-        println("Ana Thread ismi ${Thread.currentThread().name}")
-        thread {
-            println("Yeni Thread bloğu içerisinde Thread ismi ${Thread.currentThread().name}")
-           val time = measureTimeMillis {
-               Thread.sleep(300L)
-            }
-
-            println("Geçen Süre ${time.toString()} ms")
-        }
-    }
 
     fun getData(word:String, pageSize:Int)
     {
@@ -235,51 +205,42 @@ class ResponseViewModel: ViewModel(), CoroutineScope {
         }
     }
 
-    fun getDataWithinThreadV2(word:String, pageSize: Int, loopSize: Int?)
+    fun getDataWithinThread(word:String, pageSize: Int, loopSize: Int?)
     {
         var begin: Long = 0L
         var end: Long = 0L
         //println("${Thread.currentThread().name} ve id = ${Thread.currentThread().id}")
-        measureTimeMillis {
-            thread(start = true, isDaemon = true) {
-                begin = System.currentTimeMillis()
-                //println("Thread içerisinde = ${Thread.currentThread().name} ve id = ${ java.lang.Thread.currentThread().id}}")
-                loopSize?.let {
-                    var i = 0
-                    var serviceRequest : Call<NewResponse>? = null
-                    while(i< loopSize){
-                        serviceRequest = api.getData(word,pageSize)
-                        i++
-                    }
-                    serviceRequest?.let {
-                        it.enqueue(object: Callback<NewResponse>{
-                            override fun onResponse(
-                                call: Call<NewResponse>,
-                                response: Response<NewResponse>
-                            ) {
-                                response.body()?.let {
-                                    responseNew.postValue(it)
-                                    end = System.currentTimeMillis()
-                                }
-                            }
+        thread(start = true, isDaemon = true) {
 
-                            override fun onFailure(call: Call<NewResponse>, t: Throwable) {
-                                t.printStackTrace()
+            begin = System.currentTimeMillis()
+            //println("Thread içerisinde = ${Thread.currentThread().name} ve id = ${ java.lang.Thread.currentThread().id}}")
+            loopSize?.let {
+                var i = 0
+                var serviceRequest : Call<NewResponse>? = null
+                while(i< loopSize){
+                    serviceRequest = api.getData(word,pageSize)
+                    i++
+                }
+                serviceRequest?.let {
+                    it.enqueue(object: Callback<NewResponse>{
+                        override fun onResponse(
+                            call: Call<NewResponse>,
+                            response: Response<NewResponse>
+                        ) {
+                            response.body()?.let {
+                                responseNew.postValue(it)
                                 end = System.currentTimeMillis()
                             }
-
-                        })
-                    }
-
+                        }
+                        override fun onFailure(call: Call<NewResponse>, t: Throwable) {
+                            t.printStackTrace()
+                            end = System.currentTimeMillis()
+                        }
+                    })
                 }
 
-                end = System.currentTimeMillis()
-                println("Elapsed time in ms: ${end-begin}")
             }
-        }.apply {
-           // println("Geçen Süre =  ${this} ms")
         }
-
 
     }
 }

@@ -5,9 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.sky.academicproject.R
-import com.sky.academicproject.adapter.RecyclerAdapter
 import com.sky.academicproject.viewmodel.ResponseViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
@@ -15,9 +13,6 @@ import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
 
-
-
-    private lateinit var adapter: RecyclerAdapter
     private lateinit var viewModel : ResponseViewModel
     private val job =  Job()
 
@@ -30,30 +25,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this)[ResponseViewModel::class.java]
-        loopSize =  1
+
+        loopSize =  10000
         pageSize = 100
 
-       /* val desiredItemCunt = loopSize * pageSize
-        val layoutManager = LinearLayoutManager(this)
-        recyclerView.layoutManager = layoutManager
-        adapter = RecyclerAdapter(com.sky.academicproject.model.NewResponse(
-            null,null, null), desiredItemCunt)
-        recyclerView.adapter = adapter*/
 
-
-
-
-
-        var i = 0
-        println("----------------------------")
-        while(i < 1)
-        {
-            //viewModel.getDataWithinThreadV2("dolar",pageSize,loopSize)
-            viewModel.getDataWithinSuspendAsync("dolar",pageSize)
-            i++
-        }
-
-        observeLiveData()
+      getData("dolar",pageSize,loopSize)
 
         button.setOnClickListener{
             it?.let {
@@ -61,9 +38,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             }
         }
     }
-    private fun getData(word:String, pageSize: Int) = runBlocking(Dispatchers.Main)
+    private fun getData(word:String, pageSize: Int, loopSize: Int)
     {
+        var i = 0
+        println("----------------------------")
+        while(i < loopSize)
+        {
+            viewModel.getDataWithinThread("dolar",pageSize,loopSize)
+            //viewModel.getDataWithinSuspend(word,pageSize)
+            i++
+        }
 
+        observeLiveData()
     }
 
     private fun recyclerViewEnjection()
@@ -81,7 +67,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 if(it.status == "ok")
                 {
                     textView.text = (pageSize * loopSize).toString()
-                    adapter.refreshData(it)
                 }
                 else
                 {
